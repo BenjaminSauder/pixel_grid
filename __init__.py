@@ -1,6 +1,6 @@
 bl_info = {
     "name": "Pixel Grid",
-    "category": "3D View",
+    "category": "Camera",
     "author": "Benjamin Sauder",
     "description": "Show pixel grid in 3d view",
     "version": (0, 1),
