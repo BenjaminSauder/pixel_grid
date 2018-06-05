@@ -2,10 +2,10 @@
 A small utility addon to display render pixels in the scene camera view.
 It comes with an operator to snap vertices to the render pixels of an orthographic camera.
 
+The addon does take "Render Resolution" and "Percentage Scale" into consideration. Camera Shift should also work as well.
+
 After installation a small "pixel grid" checkbox should appear in the camera properties > display tab.
 ![pixel_grid_header](https://github.com/BenjaminSauder/pixel_grid/blob/master/doc/header.jpg)
-
-It does take "Render Resolution" and "Percentage Scale" into consideration. Camera Shift should also work as well.
 
 
 ## Snap Verts to Render Pixel
