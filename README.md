@@ -10,7 +10,7 @@ After installation a small "pixel grid" checkbox should appear in the camera pro
 
 ## Snap Verts to Render Pixel
 
-This little operator is found under Mesh>Vertices>Snap Vertices to Render Pixels. It can also be called via space "Snap Vertices to Render Pixels"
+This little operator is found under Mesh>Vertices>Snap Vertices to Render Pixels. It can also be called via spacebar-search: "Snap Vertices to Render Pixels"
 
 For this thing to work you have to select a mesh object, and the scene camera has to be set to orthographic mode.
 
