@@ -4,7 +4,7 @@ bl_info = {
     "author": "Benjamin Sauder",
     "description": "Show pixel grid in 3d view",
     "version": (0, 1),
-    "location": "View3D  > Tool Shelf",
+    "location": "Camera Properties > Display",
     "blender": (2, 79, 0),
 }
 
@@ -14,6 +14,7 @@ if "bpy" in locals():
     importlib.reload(main)
     importlib.reload(render)
     importlib.reload(ui)
+    importlib.reload(prefs)
     importlib.reload(op_snap_verts_to_render_pixel)
 
 else:
@@ -21,6 +22,7 @@ else:
         main,
         render,
         ui,
+        prefs,
         op_snap_verts_to_render_pixel,
 
     )
@@ -30,14 +32,9 @@ from bpy.app.handlers import persistent
 
 # stuff which needs to be registred in blender
 classes = [
+    prefs.PixelGridPrefs,
     op_snap_verts_to_render_pixel.SnapVertsToRenderPixel,
 ]
-
-
-@property
-def isDebug():
-    #return True
-    return  bpy.app.debug_value != 0
 
 
 @persistent
@@ -46,7 +43,7 @@ def scene_update_post_handler(dummy):
 
 
 def register():
-    if isDebug:
+    if prefs.isDebug:
         print("register")
 
     for c in classes:
@@ -57,17 +54,22 @@ def register():
         default=False)
 
     bpy.types.DATA_PT_camera_display.prepend(ui.camera_display_extension)
-
+    bpy.types.VIEW3D_MT_edit_mesh_vertices.append(ui.vertices_menu_extension)
 
     bpy.app.handlers.scene_update_post.append(scene_update_post_handler)
 
 
 def unregister():
-    if isDebug:
+    if prefs.isDebug:
         print("unregister")
 
-    for k,v in main.VIEW3D.items():
+    for k, v in main.VIEW3D.items():
         bpy.types.SpaceView3D.draw_handler_remove(v, 'WINDOW')
+
+    bpy.types.VIEW3D_MT_edit_mesh_vertices.remove(ui.vertices_menu_extension)
 
     for c in classes:
         bpy.utils.unregister_class(c)
+
+
+    del bpy.types.Scene.pixel_grid_visible

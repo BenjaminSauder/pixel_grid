@@ -14,11 +14,10 @@ COLOR_GRID = (0.1, 0.1, 0.1, 0.2)
 
 def draw_callback_view3D(area, v3d, rv3d):
     if (area not in main.VIEW3D or len(area.regions) == 0 or
-        bpy.context.scene.camera == None or
-        area.type != "VIEW_3D" or rv3d.view_perspective != 'CAMERA' or
-        not bpy.context.scene.pixel_grid_visible ):
+                bpy.context.scene.camera == None or
+                area.type != "VIEW_3D" or rv3d.view_perspective != 'CAMERA' or
+            not bpy.context.scene.pixel_grid_visible):
         return
-
 
     scene = bpy.context.scene
 
@@ -34,32 +33,22 @@ def draw_callback_view3D(area, v3d, rv3d):
             region_x = region.x
             region_y = region.y
 
-
     bgl.glViewport(region_x, region_y, width, height)
 
     camera_frame = view3d_camera_border(region, rv3d)
-    # print(camera_frame)
+
+    # TopRight - BottomLeft
+    screen_resolution = camera_frame[0] - camera_frame[2]
 
     resolution_percentage = scene.render.resolution_percentage / 100.0
 
     resolution_x = int(scene.render.resolution_x * resolution_percentage)
     resolution_y = int(scene.render.resolution_y * resolution_percentage)
 
-
-
-    # TopRight - BottomLeft
-    screen_resolution = camera_frame[0] - camera_frame[2]
-
     screen_x = screen_resolution.x / resolution_x
     screen_y = screen_resolution.y / resolution_y
 
-    #calculate the offset with shift, and take care of modulus returning only positive
-    shift_x = (screen_x * (scene.camera.data.shift_x % 1.0))
-    if scene.camera.data.shift_x < 0:
-        shift_x = -shift_x
-    shift_y = (screen_y * (scene.camera.data.shift_y % 1.0))
-    if scene.camera.data.shift_y < 0:
-        shift_y = -shift_y
+    shift_x, shift_y = main.get_camera_shift(scene, screen_x, screen_y)
 
     # generate grid
     vertices = []
@@ -68,6 +57,10 @@ def draw_callback_view3D(area, v3d, rv3d):
     if screen_x > GRID_MIN_SIZE and screen_y > GRID_MIN_SIZE:
         for x in range(resolution_x):
             position_x = camera_frame[3].x + x * screen_x + shift_x
+
+            if position_x < camera_frame[3].x:
+                position_x += screen_resolution.x
+
             vertices.extend((position_x,
                              camera_frame[0].y,
                              position_x,
@@ -75,15 +68,18 @@ def draw_callback_view3D(area, v3d, rv3d):
 
         for y in range(resolution_y):
             position_y = camera_frame[0].y - y * screen_y + shift_y
+
+            if position_y > camera_frame[0].y:
+                position_y += screen_resolution.y
+
             vertices.extend((camera_frame[2].x,
                              position_y,
                              camera_frame[0].x,
                              position_y))
 
-
-        #fade in pixel grid
+        # fade in pixel grid
         alpha = maprange((GRID_MIN_SIZE, GRID_MIN_SIZE * 4), (0, 1.0), min(screen_x, screen_y))
-        alpha = min(1.0 , max(0, alpha))
+        alpha = min(1.0, max(0.0, alpha))
 
         '''
         vertices = [0, 0,
@@ -105,8 +101,10 @@ def draw_callback_view3D(area, v3d, rv3d):
     bgl.glEnable(bgl.GL_BLEND)
     bgl.glBlendFunc(bgl.GL_SRC_ALPHA, bgl.GL_ONE_MINUS_SRC_ALPHA)
 
-    color = (COLOR_GRID[0], COLOR_GRID[1], COLOR_GRID[2], COLOR_GRID[3] * alpha)
-    print(color)
+    prefs = bpy.context.user_preferences.addons[__package__].preferences
+    color = prefs.pixel_grid_color
+    color = (color[0], color[1], color[2], color[3] * alpha)
+
     draw_vertex_array("grid", bgl.GL_LINES, 2, color)
 
     bgl.glViewport(*tuple(viewport_info))

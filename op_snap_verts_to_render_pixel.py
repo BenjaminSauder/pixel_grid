@@ -1,5 +1,8 @@
 import bpy
 
+from . import main
+
+
 class SnapVertsToRenderPixel(bpy.types.Operator):
     """ 
     Snaps vertices to the closest render pixel.
@@ -11,31 +14,36 @@ class SnapVertsToRenderPixel(bpy.types.Operator):
 
     def execute(self, context):
         obj = context.active_object
+
+        if not obj or obj.type != 'MESH':
+            #print("invalid object selection")
+            return {'CANCELLED'}
+
         mesh = obj.data
         scene = context.scene
         camera = scene.camera
 
         if not camera or camera.data.type != "ORTHO":
-            self.report( {'ERROR_INVALID_INPUT'}, "Scene camera is not Orthographic or None" )
-            return { 'CANCELLED' }
+            self.report({'ERROR_INVALID_INPUT'}, "The scene camera must be in orthographic mode or the scene camera is missing.")
+            return {'CANCELLED'}
+
+        currentMode = bpy.context.object.mode
+        bpy.ops.object.mode_set(mode='OBJECT')
 
         ortho_scale = camera.data.ortho_scale
 
         resolution_percentage = scene.render.resolution_percentage / 100.0
 
-        renderpixel_size  = (ortho_scale / (scene.render.resolution_x * resolution_percentage),
-                             ortho_scale / (scene.render.resolution_y * resolution_percentage) )
+        renderpixel_size = (ortho_scale / (scene.render.resolution_x * resolution_percentage),
+                            ortho_scale / (scene.render.resolution_y * resolution_percentage))
 
-        #get shifting right..
-        shift_x = (renderpixel_size[0] * (scene.camera.data.shift_x % 1.0))
-        if scene.camera.data.shift_x < 0:
-            shift_x = -shift_x
-        shift_y = (renderpixel_size[1] * (scene.camera.data.shift_y % 1.0))
-        if scene.camera.data.shift_y < 0:
-            shift_y = -shift_y
+        # get shifting right..
+        shift_x, shift_y = main.get_camera_shift(scene, renderpixel_size[0], renderpixel_size[1])
 
-        #print(renderpixel_size)
+        # print(renderpixel_size)
         for vert in mesh.vertices:
+            if not vert.select:
+                continue
 
             co = obj.matrix_world * vert.co
             co_ortho = camera.matrix_world.inverted() * co
@@ -47,6 +55,8 @@ class SnapVertsToRenderPixel(bpy.types.Operator):
 
             vert.co = obj.matrix_world.inverted() * co_world
 
+
+        bpy.ops.object.mode_set(mode=currentMode)
         return {'FINISHED'}
 
     def invoke(self, context, event):
@@ -55,4 +65,3 @@ class SnapVertsToRenderPixel(bpy.types.Operator):
 
 def roundToValue(x, prec=16, base=.05):
     return round(base * round(float(x) / base), prec)
-

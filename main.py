@@ -41,3 +41,15 @@ def update():
         #print("remove view3d")
         bpy.types.SpaceView3D.draw_handler_remove( VIEW3D[closed_view], 'WINDOW')
         VIEW3D.pop(closed_view, None)
+
+
+def get_camera_shift(scene, stepsize_x, stepsize_y):
+    # calculate the offset with shift, and take care of modulus returning only positive
+    shift_x = (stepsize_x * (scene.camera.data.shift_x % 1.0))
+    if scene.camera.data.shift_x < 0:
+        shift_x = -shift_x
+    shift_y = (stepsize_y * (scene.camera.data.shift_y % 1.0))
+    if scene.camera.data.shift_y < 0:
+        shift_y = -shift_y
+
+    return shift_x, shift_y
