@@ -37,9 +37,6 @@ class SnapVertsToRenderPixel(bpy.types.Operator):
         renderpixel_size = (ortho_scale / (scene.render.resolution_x * resolution_percentage),
                             ortho_scale / (scene.render.resolution_y * resolution_percentage))
 
-        # get shifting right..
-        shift_x, shift_y = main.get_camera_shift(scene, renderpixel_size[0], renderpixel_size[1])
-
         # print(renderpixel_size)
         for vert in mesh.vertices:
             if not vert.select:
@@ -48,8 +45,8 @@ class SnapVertsToRenderPixel(bpy.types.Operator):
             co = obj.matrix_world * vert.co
             co_ortho = camera.matrix_world.inverted() * co
 
-            co_ortho.x = roundToValue(co_ortho.x, base=renderpixel_size[0]) + shift_x
-            co_ortho.y = roundToValue(co_ortho.y, base=renderpixel_size[1]) + shift_y
+            co_ortho.x = roundToValue(co_ortho.x, base=renderpixel_size[0])
+            co_ortho.y = roundToValue(co_ortho.y, base=renderpixel_size[1])
 
             co_world = camera.matrix_world * co_ortho
 

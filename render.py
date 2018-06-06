@@ -48,7 +48,7 @@ def draw_callback_view3D(area, v3d, rv3d):
     screen_x = screen_resolution.x / resolution_x
     screen_y = screen_resolution.y / resolution_y
 
-    shift_x, shift_y = main.get_camera_shift(scene, screen_x, screen_y)
+    #shift_x, shift_y = main.get_camera_shift(scene, screen_resolution.x, screen_resolution.x)
 
     # generate grid
     vertices = []
@@ -56,10 +56,7 @@ def draw_callback_view3D(area, v3d, rv3d):
 
     if screen_x > GRID_MIN_SIZE and screen_y > GRID_MIN_SIZE:
         for x in range(resolution_x):
-            position_x = camera_frame[3].x + x * screen_x + shift_x
-
-            if position_x < camera_frame[3].x:
-                position_x += screen_resolution.x
+            position_x = camera_frame[3].x + x * screen_x
 
             vertices.extend((position_x,
                              camera_frame[0].y,
@@ -67,10 +64,7 @@ def draw_callback_view3D(area, v3d, rv3d):
                              camera_frame[2].y))
 
         for y in range(resolution_y):
-            position_y = camera_frame[0].y - y * screen_y + shift_y
-
-            if position_y > camera_frame[0].y:
-                position_y += screen_resolution.y
+            position_y = camera_frame[0].y - y * screen_y
 
             vertices.extend((camera_frame[2].x,
                              position_y,
